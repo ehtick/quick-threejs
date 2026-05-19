@@ -232,6 +232,14 @@ export class RegisterModule
 		return this._service.workerThread;
 	}
 
+	public getThread() {
+		return this._service.workerThread?.thread;
+	}
+
+	public getWorker() {
+		return this._service.workerThread?.worker;
+	}
+
 	public getWorkerPool() {
 		return this._service.workerPool;
 	}

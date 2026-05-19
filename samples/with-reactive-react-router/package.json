@@ -17,17 +17,17 @@
 		"react": "^19.1.1",
 		"react-dom": "^19.2.4",
 		"react-router": "^7.9.0",
-		"three": "^0.183.1 ",
+		"three": "^0.184.0",
 		"stats.js": "^0.17.0"
 	},
 	"devDependencies": {
 		"@quick-threejs/config": "workspace:*",
 		"@react-router/dev": "^7.9.0",
-		"@types/node": "^24.3.1",
+		"@tailwindcss/postcss": "^4.2.1",
+		"@types/node": "^25.5.0",
 		"@types/react": "^19.1.12",
 		"@types/react-dom": "^19.2.3",
-		"@types/three": "^0.183.1 ",
-		"autoprefixer": "^10.4.20",
+		"@types/three": "^0.184.1",
 		"postcss": "^8.4.49",
 		"tailwindcss": "^4.2.1",
 		"vite-tsconfig-paths": "^6.1.1"
