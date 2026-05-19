@@ -1,7 +1,7 @@
 import { Subscription } from "rxjs";
 import { inject, Lifecycle, scoped } from "tsyringe";
 
-import type { Module } from "@/common";
+import { type AppProps, type Module, APP_PROPS_TOKEN } from "@/common";
 import { TimerService } from "./timer.service";
 import { TimerController } from "./timer.controller";
 
@@ -12,15 +12,17 @@ export class TimerModule implements Module {
 
 	constructor(
 		@inject(TimerController) private readonly _controller: TimerController,
-		@inject(TimerService) private readonly _service: TimerService
+		@inject(TimerService) private readonly _service: TimerService,
+		@inject(APP_PROPS_TOKEN) private readonly _props: AppProps
 	) {
 		this._subscriptions.push(
 			this._controller.step$.subscribe(this._service.step.bind(this._service))
 		);
 	}
 
-	public init(enabled?: boolean): void {
-		this.enabled(enabled);
+	public init(): void {
+		const { startTimer } = this._props.event || {};
+		this.enabled(startTimer);
 	}
 
 	public frame() {

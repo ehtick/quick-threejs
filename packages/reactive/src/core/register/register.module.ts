@@ -5,7 +5,7 @@ import { type DependencyContainer, inject, Lifecycle, scoped } from "tsyringe";
 import { Subscription } from "rxjs";
 
 import {
-	type AppModulePropsMessageEvent,
+	type MessageEventAppProps,
 	type Module,
 	type OffscreenCanvasStb,
 	type ProxyEvent,
@@ -133,7 +133,7 @@ export class RegisterModule
 			pixelRatio: this.props.pixelRatio,
 			initApp: true,
 			hasCanvasWrapper: !!this.props.canvasWrapper
-		} satisfies AppModulePropsMessageEvent["data"];
+		} satisfies MessageEventAppProps["data"];
 
 		if (this.props.mainThread) {
 			await import(`${this.props.location}`);
@@ -163,7 +163,7 @@ export class RegisterModule
 		const subjectData = {
 			...data,
 			canvas: this._service.offscreenCanvas
-		} satisfies AppModulePropsMessageEvent["data"];
+		} satisfies MessageEventAppProps["data"];
 
 		const [workerThread, queued] =
 			(await this._service.workerPool.run<ExposedAppModule>({

@@ -3,6 +3,7 @@ import { fromEvent, map, filter, Subject, Observable } from "rxjs";
 
 import {
 	type ProxyEvent,
+	APP_EXPOSED_THREAD_TOKEN,
 	PROXY_EVENT_LISTENERS,
 	ProxyEventHandlersBlueprint
 } from "@/common";
@@ -21,7 +22,9 @@ export class RegisterController extends ProxyEventHandlersBlueprint {
 		let mainThreadApp: ExposedAppModule | undefined;
 
 		try {
-			mainThreadApp = container.resolve<ExposedAppModule>("MAIN_THREAD_APP");
+			mainThreadApp = container.resolve<ExposedAppModule>(
+				APP_EXPOSED_THREAD_TOKEN
+			);
 		} catch {
 			mainThreadApp = undefined;
 		}

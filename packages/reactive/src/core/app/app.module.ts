@@ -5,7 +5,6 @@ import { Observable } from "rxjs";
 import { inject, scoped, Lifecycle } from "tsyringe";
 
 import {
-	type AppModulePropsMessageEvent,
 	type Module,
 	AppProxyEventHandlersBlueprint,
 	PROXY_EVENT_LISTENERS
@@ -77,15 +76,15 @@ export class AppModule
 		return this.world.getAfterRender$();
 	}
 
-	public init(props: AppModulePropsMessageEvent["data"]) {
-		this._service.init(props.canvas);
-		this.sizes.init(props);
+	public init() {
+		this._service.init();
+		this.sizes.init();
 		this.camera.init();
 		this.world.init();
-		this.renderer.init(props);
-		this.timer.init(props.startTimer);
+		this.renderer.init();
+		this.timer.init();
 		this.loader.init();
-		this.debug.init(props);
+		this.debug.init();
 	}
 
 	public dispose() {

@@ -1,7 +1,7 @@
 import { inject, Lifecycle, scoped } from "tsyringe";
 import { Subscription } from "rxjs";
 
-import type { AppModulePropsMessageEvent, Module } from "@/common";
+import type { Module } from "@/common";
 import { RendererService } from "./renderer.service";
 import { RendererController } from "./renderer.controller";
 
@@ -15,7 +15,7 @@ export class RendererModule implements Module {
 		@inject(RendererService) private readonly _service: RendererService
 	) {}
 
-	public init({ canvas }: AppModulePropsMessageEvent["data"]): void {
+	public init(): void {
 		this._subscriptions.push(
 			this._controller.step$.subscribe(
 				this._service.render.bind(this._service)
@@ -25,7 +25,7 @@ export class RendererModule implements Module {
 			)
 		);
 
-		this._service.init(canvas!);
+		this._service.init();
 	}
 
 	public enabled(value?: boolean) {
