@@ -21,10 +21,12 @@ export default function Home() {
 						"../core/main.worker.ts",
 						import.meta.url
 					) as unknown as string,
-					enableDebug: true,
-					axesSizes: 5,
-					gridSizes: 10,
-					withMiniCamera: true,
+					debug: {
+						enabled: true,
+						axesSizes: 5,
+						gridSizes: 10,
+						withMiniCamera: true
+					},
 					onReady: (app) => {
 						setApp(app);
 					}

@@ -134,7 +134,7 @@ export class RegisterPropsBlueprint {
 		 * Will enable orbit controls for the cameras.
 		 *
 		 * @remark __Deactivated if the value is `false` or `undefined`__
-		 * @remark __This property depends on {@link RegisterPropsBlueprint.enableDebug enableDebug}__
+		 * @remark __This property depends on {@link RegisterPropsBlueprint.debug debug} (when `enabled` is set)__
 		 *
 		 * @default undefined
 		 */
@@ -144,7 +144,7 @@ export class RegisterPropsBlueprint {
 		 * Define the {@link THREE.AxesHelper} sizes.
 		 *
 		 * @remark __Deactivated if the value is `0` or `undefined`__
-		 * @remark __This property depends on {@link RegisterPropsBlueprint.enableDebug enableDebug}__
+		 * @remark __This property depends on {@link RegisterPropsBlueprint.debug debug} (when `enabled` is set)__
 		 *
 		 * @default undefined
 		 */
@@ -154,7 +154,7 @@ export class RegisterPropsBlueprint {
 		 * Define the {@link THREE.GridHelper} sizes.
 		 *
 		 * @remark __Deactivated if the value is `0` or `undefined`__
-		 * @remark __This property depends on {@link RegisterPropsBlueprint.enableDebug enableDebug}__
+		 * @remark __This property depends on {@link RegisterPropsBlueprint.debug debug} (when `enabled` is set)__
 		 *
 		 * @default undefined
 		 */
@@ -164,7 +164,7 @@ export class RegisterPropsBlueprint {
 		 * Display a mini perfective camera at the top right corner of the screen.
 		 *
 		 * @remark __Deactivated if the value is `false` or `undefined`__
-		 * @remark __This property depends on {@link RegisterPropsBlueprint.enableDebug enableDebug}__
+		 * @remark __This property depends on {@link RegisterPropsBlueprint.debug debug} (when `enabled` is set)__
 		 *
 		 * @default undefined
 		 */
