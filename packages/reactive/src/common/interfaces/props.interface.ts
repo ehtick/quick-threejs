@@ -1,7 +1,11 @@
 import { OffscreenCanvasStb } from "main";
-import { RegisterPropsBlueprint } from "../blueprints/props.blueprint";
+import {
+	LaunchAppProps,
+	RegisterPropsBlueprint
+} from "../blueprints/props.blueprint";
+import { AppModule } from "@/main.worker";
 
-export interface AppModulePropsMessageEvent
+export interface MessageEventAppProps
 	extends MessageEvent<
 		Omit<
 			RegisterPropsBlueprint,
@@ -29,3 +33,8 @@ export interface AppModulePropsMessageEvent
 			initApp: true;
 		}
 	> {}
+
+export interface AppProps {
+	event: MessageEventAppProps["data"] | undefined;
+	launch: LaunchAppProps<AppModule> | undefined;
+}

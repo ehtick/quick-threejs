@@ -7,7 +7,7 @@ import {
 } from "three";
 import { inject, Lifecycle, scoped } from "tsyringe";
 
-import type { OffscreenCanvasStb } from "@/common";
+import { type AppProps, APP_PROPS_TOKEN } from "@/common";
 import { WorldService } from "../world/world.service";
 import { CameraService } from "../camera/camera.service";
 import { SizesService } from "../sizes/sizes.service";
@@ -21,10 +21,15 @@ export class RendererService {
 	constructor(
 		@inject(WorldService) private readonly _worldService: WorldService,
 		@inject(CameraService) private readonly _cameraService: CameraService,
-		@inject(SizesService) private readonly _sizes: SizesService
+		@inject(SizesService) private readonly _sizes: SizesService,
+		@inject(APP_PROPS_TOKEN) private readonly _props: AppProps
 	) {}
 
-	public init(canvas: OffscreenCanvasStb | HTMLCanvasElement) {
+	public init() {
+		const { canvas } = this._props.event || {};
+		if (!canvas)
+			throw new Error("Renderer Service: Core App Canvas is not initialized.");
+
 		this.instance = new WebGLRenderer({
 			canvas,
 			context: canvas.getContext("webgl2", {
@@ -61,12 +66,12 @@ export class RendererService {
 		)
 			return;
 
-		const width = this._sizes.fullscreen
+		const width = this._sizes.fullScreen
 			? this._sizes.windowWidth
 			: this._sizes.hasCanvasWrapper
 				? this._sizes.wrapperWidth
 				: this._sizes.width;
-		const height = this._sizes.fullscreen
+		const height = this._sizes.fullScreen
 			? this._sizes.windowHeight
 			: this._sizes.hasCanvasWrapper
 				? this._sizes.wrapperHeight

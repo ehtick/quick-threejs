@@ -1,1 +1,4 @@
 export const CONTAINER_TOKEN = "CONTAINER";
+
+export const APP_PROPS_TOKEN = "APP_PROPS";
+export const APP_EXPOSED_THREAD_TOKEN = "APP_EXPOSED_THREAD";

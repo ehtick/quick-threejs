@@ -1,6 +1,6 @@
-import { Lifecycle, scoped } from "tsyringe";
+import { inject, Lifecycle, scoped } from "tsyringe";
 
-import { ProxyEvent, type OffscreenCanvasStb } from "@/common";
+import { type AppProps, APP_PROPS_TOKEN, ProxyEvent } from "@/common";
 
 @scoped(Lifecycle.ContainerScoped)
 export class SizesService {
@@ -14,23 +14,28 @@ export class SizesService {
 	public pixelRatio = 1;
 	public frustrum = 5;
 	public enabled = true;
-	public fullscreen = false;
+	public fullScreen = false;
 	public hasCanvasWrapper = false;
 
-	public init(
-		canvas: OffscreenCanvasStb | HTMLCanvasElement,
-		pixelRatio = 1,
-		fullscreen = true,
-		hasCanvasWrapper = false,
-		enabled = true
-	) {
+	constructor(@inject(APP_PROPS_TOKEN) private readonly _props: AppProps) {}
+
+	public init() {
+		const {
+			canvas,
+			pixelRatio = 1,
+			fullScreen = true,
+			hasCanvasWrapper = false
+		} = this._props.event || {};
+
+		if (!canvas) throw new Error("Core App Canvas is not initialized.");
+
 		this.height = Number(canvas.height ?? this.height);
 		this.width = Number(canvas.width ?? this.width);
 		this.aspect = this.width / this.height;
 		this.pixelRatio = typeof pixelRatio === "number" ? pixelRatio : 1;
-		this.fullscreen = fullscreen;
+		this.fullScreen = fullScreen;
 		this.hasCanvasWrapper = hasCanvasWrapper;
-		this.enabled = enabled;
+		this.enabled = true;
 	}
 
 	public handleResize(size: UIEvent & ProxyEvent) {
@@ -40,7 +45,7 @@ export class SizesService {
 		this.wrapperHeight = size.wrapperHeight;
 		this.windowWidth = size.windowWidth;
 		this.windowHeight = size.windowHeight;
-		this.aspect = this.fullscreen
+		this.aspect = this.fullScreen
 			? size.windowWidth / size.windowHeight
 			: this.hasCanvasWrapper
 				? size.wrapperWidth / size.wrapperHeight
@@ -49,12 +54,12 @@ export class SizesService {
 
 	public getViewPortSizes() {
 		return {
-			width: this.fullscreen
+			width: this.fullScreen
 				? this.windowWidth
 				: this.hasCanvasWrapper
 					? this.wrapperWidth
 					: this.width,
-			height: this.fullscreen
+			height: this.fullScreen
 				? this.windowHeight
 				: this.hasCanvasWrapper
 					? this.wrapperHeight

@@ -8,7 +8,7 @@ import {
 } from "three";
 import { inject, Lifecycle, scoped } from "tsyringe";
 
-import { DefaultCameraType } from "@/common";
+import { type AppProps, APP_PROPS_TOKEN, DefaultCameraType } from "@/common";
 import { SizesService } from "../sizes/sizes.service";
 
 @scoped(Lifecycle.ContainerScoped)
@@ -16,7 +16,10 @@ export class CameraService {
 	public instance?: Camera;
 	public enabled = true;
 
-	constructor(@inject(SizesService) private readonly _sizes: SizesService) {}
+	constructor(
+		@inject(SizesService) private readonly _sizes: SizesService,
+		@inject(APP_PROPS_TOKEN) private readonly _props: AppProps
+	) {}
 
 	public set aspectRatio(ratio: number) {
 		if (this.instance instanceof PerspectiveCamera)
@@ -40,20 +43,12 @@ export class CameraService {
 		this.instance?.rotation.copy(rotation);
 	}
 
-	public init(cameraType?: DefaultCameraType) {
+	public init() {
+		const { defaultCamera } = this._props.event || {};
+
 		this.dispose();
 
-		if (
-			cameraType === DefaultCameraType.PERSPECTIVE ||
-			cameraType === undefined
-		) {
-			this.instance = new PerspectiveCamera(70, this._sizes.aspect, 0.1, 100);
-
-			this.instance.position.z = 8;
-			return;
-		}
-
-		if (cameraType === DefaultCameraType.ORTHOGRAPHIC) {
+		if (defaultCamera === DefaultCameraType.ORTHOGRAPHIC) {
 			this.instance = new OrthographicCamera(
 				(-this._sizes.aspect * this._sizes.frustrum) / 2,
 				(this._sizes.aspect * this._sizes.frustrum) / 2,
@@ -62,7 +57,12 @@ export class CameraService {
 				-50,
 				50
 			);
+
+			return;
 		}
+
+		this.instance = new PerspectiveCamera(70, this._sizes.aspect, 0.1, 100);
+		this.instance.position.z = 8;
 	}
 
 	public handleStep() {

@@ -10,53 +10,32 @@ import {
 	type LaunchAppProps,
 	PROXY_EVENT_LISTENERS,
 	CONTAINER_TOKEN,
-	AppModulePropsMessageEvent
+	MessageEventAppProps,
+	APP_PROPS_TOKEN,
+	APP_EXPOSED_THREAD_TOKEN,
+	AppProps
 } from "@/common";
 import { AppModule } from "./app.module";
 
-export const launchApp = async (props?: LaunchAppProps<AppModule>) => {
+export const launchApp = async (_props?: LaunchAppProps<AppModule>) => {
+	const appProps: AppProps = { event: undefined, launch: _props };
 	const container = parentContainer.createChildContainer();
+	container.register(CONTAINER_TOKEN, { useValue: container });
+	container.register(APP_PROPS_TOKEN, { useValue: appProps });
 	const module = container.resolve(AppModule);
 	const app: ContainerizedApp<AppModule> = { container, module };
-	const proxyEventHandlers: {
-		[key in ProxyEventListenerKeys]: WorkerFunction;
-	} = {} as typeof proxyEventHandlers;
-
-	const handleInitMessage = (event: AppModulePropsMessageEvent) => {
-		if (!event.data?.initApp) return;
-		if (
-			(!event.data?.canvas && !event.data?.mainThread) ||
-			module.getIsInitialized()
-		)
-			return;
-
-		const canvas =
-			event.data.canvas ||
-			props?.canvas ||
-			(event.data.mainThread
-				? (self?.document?.getElementsByTagName(
-						"canvas"
-					)[0] as HTMLCanvasElement)
-				: undefined);
-
-		module.init({
-			...event.data,
-			canvas
-		});
-
-		props?.onReady?.(app);
-
-		self?.removeEventListener("message", handleInitMessage);
-	};
-
-	container.register(CONTAINER_TOKEN, { useValue: container });
-	PROXY_EVENT_LISTENERS.forEach((key) => {
-		proxyEventHandlers[key] = module[key]?.bind?.(module);
-	});
-	self?.addEventListener("message", handleInitMessage);
-
 	const exposedApp: ExposedAppModule = {
-		...proxyEventHandlers,
+		...(() => {
+			const proxyEventHandlers: {
+				[key in ProxyEventListenerKeys]: WorkerFunction;
+			} = {} as typeof proxyEventHandlers;
+
+			PROXY_EVENT_LISTENERS.forEach((key) => {
+				proxyEventHandlers[key] = module[key];
+			});
+
+			return proxyEventHandlers;
+		})(),
 		getProxyReceiver: module.getProxyReceiver.bind(module),
 		getIsInitialized: module.getIsInitialized.bind(module),
 		getBeforeStep$: module.getBeforeStep$.bind(module),
@@ -65,15 +44,40 @@ export const launchApp = async (props?: LaunchAppProps<AppModule>) => {
 		getAfterRender$: module.getAfterRender$.bind(module),
 		dispose: module.dispose.bind(module)
 	};
+	parentContainer.register(APP_EXPOSED_THREAD_TOKEN, { useValue: exposedApp });
 
-	parentContainer.register("MAIN_THREAD_APP", { useValue: exposedApp });
+	const handleInitMessage = (event: MessageEventAppProps) => {
+		if (
+			module.getIsInitialized() ||
+			!event.data?.initApp ||
+			!(event.data?.canvas || event.data?.mainThread)
+		)
+			return;
+
+		const canvas =
+			event.data.canvas ||
+			appProps.launch?.canvas ||
+			(event.data.mainThread
+				? (self?.document?.getElementsByTagName(
+						"canvas"
+					)[0] as HTMLCanvasElement)
+				: undefined);
+
+		appProps.event = { ...event.data, canvas };
+		module.init();
+		appProps.launch?.onReady?.(app);
+		self?.removeEventListener("message", handleInitMessage);
+	};
+
+	self?.addEventListener("message", handleInitMessage);
 
 	try {
 		expose(exposedApp);
 	} catch (error) {
-		const ErrorMessage =
-			error instanceof Error ? error.message : "Unknown error";
-		console.warn("Unable to expose the App Module.", ErrorMessage);
+		console.warn(
+			"Unable to expose the App Module.",
+			error instanceof Error ? error.message : "Unknown error"
+		);
 	}
 
 	return app;

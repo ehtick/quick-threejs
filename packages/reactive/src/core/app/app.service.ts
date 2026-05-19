@@ -1,7 +1,11 @@
 import { ProxyReceiver } from "@quick-threejs/utils";
-import { Lifecycle, scoped } from "tsyringe";
+import { inject, Lifecycle, scoped } from "tsyringe";
 
-import { AppModulePropsMessageEvent, type OffscreenCanvasStb } from "@/common";
+import {
+	APP_PROPS_TOKEN,
+	type AppProps,
+	type OffscreenCanvasStb
+} from "@/common";
 
 @scoped(Lifecycle.ContainerScoped)
 export class AppService {
@@ -11,7 +15,13 @@ export class AppService {
 
 	public isInitialized = false;
 
-	init(canvas: AppModulePropsMessageEvent["data"]["canvas"]) {
+	constructor(
+		@inject(APP_PROPS_TOKEN)
+		private readonly _props: AppProps
+	) {}
+
+	init() {
+		const { canvas } = this._props.event || {};
 		if (!canvas) throw new Error("Core App Canvas is not initialized.");
 
 		this.canvas = canvas;

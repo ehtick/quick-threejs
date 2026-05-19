@@ -1,7 +1,7 @@
 import { Subscription } from "rxjs";
 import { inject, Lifecycle, scoped } from "tsyringe";
 
-import type { AppModulePropsMessageEvent, Module } from "@/common";
+import type { Module } from "@/common";
 import { SizesService } from "./sizes.service";
 import { SizesController } from "./sizes.controller";
 
@@ -14,19 +14,14 @@ export class SizesModule implements Module {
 		@inject(SizesService) private readonly _service: SizesService
 	) {}
 
-	public init({
-		canvas,
-		pixelRatio,
-		fullScreen,
-		hasCanvasWrapper
-	}: AppModulePropsMessageEvent["data"]) {
+	public init() {
 		this._subscriptions.push(
 			this._controller.resize$.subscribe(
 				this._service.handleResize.bind(this._service)
 			)
 		);
 
-		this._service.init(canvas!, pixelRatio, fullScreen, hasCanvasWrapper);
+		this._service.init();
 	}
 
 	public dispose() {
