@@ -1,5 +1,12 @@
 # basic-sample
 
+## 0.1.14
+
+### Patch Changes
+
+- Updated dependencies [d5e306e]
+  - @quick-threejs/legacy@0.1.12
+
 ## 0.1.13
 
 ### Patch Changes

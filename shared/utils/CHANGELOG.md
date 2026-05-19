@@ -1,5 +1,19 @@
 # @quick-threejs/utils
 
+## 0.1.21
+
+### Patch Changes
+
+- d5e306e: # 05-19-2026
+
+  ## refactor: threejs version bumps
+
+  - Upgrade `three` to ^0.184.0 and `@types/three` to ^0.184.1.
+  - Add `@quick-threejs/reactive` getters for `worker` and `thread`
+  - Clarify `RegisterPropsBlueprint` debug JSDoc references. (Samples use the new versions locally.
+  - `with-reactive-react-router` uses Tailwind v4 `@tailwindcss/postcss` and typed `register({ debug: … })`.)
+  - Convert `@commitlint` config to TypeScript and disable `body-max-line-length` rule.
+
 ## 0.1.20
 
 ### Patch Changes
