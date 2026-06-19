@@ -49,7 +49,10 @@ export class RendererService {
 		if (this._props.event?.renderer === RendererType.WEBGL) {
 			this.instance = new WebGLRenderer(rendererOptions);
 		} else {
-			this.instance = new WebGPURenderer(rendererOptions);
+			this.instance = new WebGPURenderer({
+				...rendererOptions,
+				forceWebGL: true
+			});
 			await this.instance.init();
 		}
 
@@ -74,6 +77,7 @@ export class RendererService {
 
 		const { width, height } = this._sizes.getViewPortSizes();
 
+		this.instance.setPixelRatio(this._sizes.pixelRatio);
 		this.instance.setSize(width, height);
 	}
 

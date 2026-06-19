@@ -136,7 +136,7 @@ export class RegisterModule
 		} satisfies MessageEventAppProps["data"];
 
 		if (this.props.mainThread) {
-			await import(`${this.props.location}`);
+			await import(/* @vite-ignore */ `${this.props.location}`);
 
 			await new Promise<void>((resolve) => {
 				const handleMessage = (event: MessageEvent) => {
@@ -253,14 +253,12 @@ export class RegisterModule
 	}
 
 	public async dispose() {
-		this._subscriptions.map((sub) => sub.unsubscribe());
-		await this._service.workerPool.terminateAll();
-
-		if (this._service.canvas?.dataset["reactive"] === "true") {
-			document.body.removeChild(this._service.canvas);
-			this._service.canvas.remove();
-			this._service.canvas = undefined;
-		}
+		this._subscriptions.forEach((sub) => sub.unsubscribe());
+		this._subscriptions.length = 0;
+		this._controller.dispose();
+		await this._service.disposeAppThread();
+		await this._service.disposeWorkerPool();
+		this._service.disposeCanvas();
 
 		this._initialized = false;
 	}

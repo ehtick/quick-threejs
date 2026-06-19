@@ -68,6 +68,13 @@ export class RegisterPropsBlueprint {
 	pixelRatio?: number;
 
 	/**
+	 * @description Whether `pixelRatio` tracks `window.devicePixelRatio` on resize.
+	 *
+	 * @note Set automatically by `register()` when `pixelRatio` is omitted.
+	 */
+	autoPixelRatio?: boolean;
+
+	/**
 	 * @description Auto-resize the renderer when the canvas size changes.
 	 *
 	 * @note Will have no effect if either {@link LaunchAppProps.fullScreen} or {@link RegisterPropsBlueprint.canvasWrapper} are not provided.

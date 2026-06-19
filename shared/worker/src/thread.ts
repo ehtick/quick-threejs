@@ -23,9 +23,11 @@ let auto_increment_unique_id = -1;
 export class WorkerThread<
 	T extends ExposedWorkerThreadModule = ExposedWorkerThreadModule
 > {
-	private _handleTerminate: WorkerThreadProps["onTerminate"];
-	private _handleError: WorkerThreadProps["onError"];
+	private _onTerminate: WorkerThreadProps["onTerminate"];
+	private _onError: WorkerThreadProps["onError"];
 	private _task?: WorkerThreadTask;
+	private readonly _onMessage = (payload: Event) =>
+		this._handleMessages(payload);
 
 	public id = (auto_increment_unique_id += 1);
 	public idle = true;
@@ -33,8 +35,8 @@ export class WorkerThread<
 	public thread?: AwaitedSpawnedThread<T>;
 
 	constructor(props?: WorkerThreadProps) {
-		this._handleTerminate = props?.onTerminate;
-		this._handleError = props?.onError;
+		this._onTerminate = props?.onTerminate;
+		this._onError = props?.onError;
 	}
 
 	private _handleMessages(payload: Event) {
@@ -42,12 +44,25 @@ export class WorkerThread<
 			payload instanceof MessageEvent &&
 			payload.data?.token === TERMINATE_THREAD_FROM_WORKER_TOKEN
 		)
-			this.terminate();
+			void this.terminate();
+	}
+
+	private async _releaseWorker() {
+		this.worker?.removeEventListener("message", this._onMessage);
+
+		if (this.thread) await Thread.terminate(this.thread);
+		await this.worker?.terminate();
+
+		this.worker = undefined;
+		this.thread = undefined;
+		this._task = undefined;
 	}
 
 	public async run<U extends T = T>(
 		task: WorkerThreadTask
 	): Promise<WorkerThread<U> | undefined> {
+		if (!this.idle) await this._releaseWorker();
+
 		try {
 			const { payload, options } = task;
 
@@ -63,11 +78,13 @@ export class WorkerThread<
 			this._task = task;
 
 			this.worker.postMessage(payload.subject, payload.transferSubject);
-			this.worker.addEventListener("message", this._handleMessages.bind(this));
+			this.worker.addEventListener("message", this._onMessage);
 
 			return this;
 		} catch (err: any) {
-			this._handleError?.(err);
+			await this._releaseWorker();
+			this.idle = true;
+			this._onError?.(err);
 			return undefined;
 		}
 	}
@@ -77,19 +94,9 @@ export class WorkerThread<
 	}
 
 	public async terminate() {
-		this.worker?.removeEventListener(
-			"message",
-			this._handleMessages.bind(this)
-		);
-
-		if (this.thread) await Thread.terminate(this.thread);
-		await this.worker?.terminate();
-
-		this.worker = undefined;
-		this.thread = undefined;
-		this._task = undefined;
+		await this._releaseWorker();
 		this.idle = true;
 
-		this._handleTerminate?.();
+		this._onTerminate?.();
 	}
 }

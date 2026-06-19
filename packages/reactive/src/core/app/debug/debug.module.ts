@@ -34,7 +34,7 @@ export class DebugModule implements Module {
 	}
 
 	public enabled(value?: boolean) {
-		if (value) this._service.enabled = value;
+		if (typeof value === "boolean") this._service.enabled = value;
 		return this._service.enabled;
 	}
 

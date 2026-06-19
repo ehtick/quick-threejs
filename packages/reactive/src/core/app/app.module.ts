@@ -88,12 +88,12 @@ export class AppModule
 	}
 
 	public dispose() {
-		this.sizes.dispose();
-		this.camera.dispose();
+		this.timer.dispose();
+		this.debug.dispose();
 		this.world.dispose();
 		this.renderer.dispose();
-		this.timer.dispose();
+		this.camera.dispose();
+		this.sizes.dispose();
 		this.loader.dispose();
-		this.debug.dispose();
 	}
 }
