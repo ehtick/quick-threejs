@@ -3,7 +3,7 @@ import { Lifecycle, scoped } from "tsyringe";
 import type { LoadedResourcePayload, LoaderResource } from "@/common";
 import { LoaderService as RegisterLoaderService } from "../../register/loader/loader.service";
 
-@scoped(Lifecycle.ResolutionScoped)
+@scoped(Lifecycle.ContainerScoped)
 export class LoaderService
 	implements
 		Pick<
@@ -22,7 +22,7 @@ export class LoaderService
 
 		this.loadedResources[source.name] = resource;
 
-		this.toLoadCount = loadedCount;
-		this.loadedCount = toLoadCount;
+		this.loadedCount = loadedCount;
+		this.toLoadCount = toLoadCount;
 	}
 }

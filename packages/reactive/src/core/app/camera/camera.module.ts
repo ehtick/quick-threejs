@@ -31,7 +31,7 @@ export class CameraModule implements Module {
 	}
 
 	public aspectRatio(value?: number) {
-		if (value) this._service.aspectRatio = value;
+		if (typeof value === "number") this._service.aspectRatio = value;
 		return this._service.aspectRatio;
 	}
 

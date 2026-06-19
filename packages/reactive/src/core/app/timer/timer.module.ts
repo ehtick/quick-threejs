@@ -2,6 +2,7 @@ import { Subscription } from "rxjs";
 import { inject, Lifecycle, scoped } from "tsyringe";
 
 import { type AppProps, type Module, APP_PROPS_TOKEN } from "@/common";
+import { AppService } from "../app.service";
 import { TimerService } from "./timer.service";
 import { TimerController } from "./timer.controller";
 
@@ -13,6 +14,7 @@ export class TimerModule implements Module {
 	constructor(
 		@inject(TimerController) private readonly _controller: TimerController,
 		@inject(TimerService) private readonly _service: TimerService,
+		@inject(AppService) private readonly _appService: AppService,
 		@inject(APP_PROPS_TOKEN) private readonly _props: AppProps
 	) {
 		this._subscriptions.push(
@@ -21,6 +23,8 @@ export class TimerModule implements Module {
 	}
 
 	public init(): void {
+		this._service.init(this._appService.proxyReceiver);
+
 		const { startTimer } = this._props.event || {};
 		this.enabled(startTimer);
 	}
@@ -40,7 +44,10 @@ export class TimerModule implements Module {
 	}
 
 	public enabled(value?: boolean) {
-		if (typeof value === "boolean") this._service.enabled = value;
+		if (typeof value === "boolean") {
+			this._service.enabled = value;
+			this._service.syncEnabled();
+		}
 		return this._service.enabled;
 	}
 
@@ -48,6 +55,8 @@ export class TimerModule implements Module {
 		if (this._initialAnimationFrameId !== undefined)
 			cancelAnimationFrame(this._initialAnimationFrameId);
 		this._service.enabled = false;
+		this._service.syncEnabled();
+		this._service.dispose();
 
 		this._subscriptions.forEach((sub) => sub.unsubscribe());
 		this._subscriptions = [];

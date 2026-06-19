@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
-import type { DefaultCameraType } from "../enums";
+import type { DefaultCameraType, RendererType } from "../enums";
 import type {
 	ContainerizedApp,
 	Module,
@@ -68,6 +68,13 @@ export class RegisterPropsBlueprint {
 	pixelRatio?: number;
 
 	/**
+	 * @description Whether `pixelRatio` tracks `window.devicePixelRatio` on resize.
+	 *
+	 * @note Set automatically by `register()` when `pixelRatio` is omitted.
+	 */
+	autoPixelRatio?: boolean;
+
+	/**
 	 * @description Auto-resize the renderer when the canvas size changes.
 	 *
 	 * @note Will have no effect if either {@link LaunchAppProps.fullScreen} or {@link RegisterPropsBlueprint.canvasWrapper} are not provided.
@@ -84,6 +91,16 @@ export class RegisterPropsBlueprint {
 	 * @default DefaultCameraType.PERSPECTIVE
 	 */
 	defaultCamera?: DefaultCameraType;
+
+	/**
+	 * @description Renderer backend to use.
+	 *
+	 * - `webgpu`: Uses {@link WebGPURenderer} with automatic WebGL 2 fallback.
+	 * - `webgl`: Uses the classic {@link WebGLRenderer}.
+	 *
+	 * @default RendererType.WEBGPU
+	 */
+	renderer?: RendererType;
 
 	/**
 	 * @description Stepping the timer animation loop on launch.
@@ -169,6 +186,17 @@ export class RegisterPropsBlueprint {
 		 * @default undefined
 		 */
 		withMiniCamera?: boolean;
+
+		/**
+		 * Attach the Three.js {@link Inspector} to the renderer.
+		 *
+		 * @remark Requires {@link RendererType.WEBGPU} and {@link RegisterPropsBlueprint.mainThread mainThread}.
+		 * @remark __Deactivated if the value is `false` or `undefined`__
+		 * @remark __This property depends on {@link RegisterPropsBlueprint.debug debug} (when `enabled` is set)__
+		 *
+		 * @default undefined
+		 */
+		enableInspector?: boolean;
 	};
 
 	/**

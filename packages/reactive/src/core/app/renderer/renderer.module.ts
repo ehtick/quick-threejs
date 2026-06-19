@@ -15,7 +15,7 @@ export class RendererModule implements Module {
 		@inject(RendererService) private readonly _service: RendererService
 	) {}
 
-	public init(): void {
+	public async init(): Promise<void> {
 		this._subscriptions.push(
 			this._controller.step$.subscribe(
 				this._service.render.bind(this._service)
@@ -25,7 +25,7 @@ export class RendererModule implements Module {
 			)
 		);
 
-		this._service.init();
+		await this._service.init();
 	}
 
 	public enabled(value?: boolean) {

@@ -14,7 +14,10 @@ export class WorldModule implements Module {
 
 	public init() {}
 
-	public dispose() {}
+	public dispose() {
+		this._controller.dispose();
+		this._service.dispose();
+	}
 
 	public scene(value?: Scene) {
 		if (value instanceof Scene) this._service.scene = value;

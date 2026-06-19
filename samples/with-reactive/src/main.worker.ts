@@ -15,14 +15,13 @@ launchApp({
 		});
 
 		app.module.loader.getLoadCompleted$().subscribe((payload) => {
-			const pawn = (payload.loadedResources["pawn"] as GLTF).scene
-				?.children[0] as Mesh;
-			const font = app.module.loader.getLoadedResources()[
-				"helvetikerFont"
-			] as Font;
-			const matcap = payload.loadedResources["matcap"];
+			const resources = payload.loadedResources;
+			const pawnResource = resources["pawn"] as GLTF;
+			const pawn = pawnResource?.scene?.children[0] as Mesh;
+			const font = resources["helvetikerFont"] as Font;
+			const matcap = resources["matcap"];
 
-			if (!pawn.isMesh || !(matcap instanceof ImageBitmap) || !font.isFont)
+			if (!pawn?.isMesh || !(matcap instanceof ImageBitmap) || !font?.isFont)
 				return;
 
 			const material = new MeshMatcapMaterial({

@@ -5,9 +5,15 @@ import {
 	SRGBColorSpace,
 	WebGLRenderer
 } from "three";
+import { WebGPURenderer } from "three/webgpu";
 import { inject, Lifecycle, scoped } from "tsyringe";
 
-import { type AppProps, APP_PROPS_TOKEN } from "@/common";
+import {
+	type AppProps,
+	APP_PROPS_TOKEN,
+	AppRenderer,
+	RendererType
+} from "@/common";
 import { WorldService } from "../world/world.service";
 import { CameraService } from "../camera/camera.service";
 import { SizesService } from "../sizes/sizes.service";
@@ -16,7 +22,7 @@ import { SizesService } from "../sizes/sizes.service";
 export class RendererService {
 	public enabled = true;
 	public enabledAutoResize = true;
-	public instance?: WebGLRenderer;
+	public instance?: AppRenderer;
 
 	constructor(
 		@inject(WorldService) private readonly _worldService: WorldService,
@@ -25,21 +31,37 @@ export class RendererService {
 		@inject(APP_PROPS_TOKEN) private readonly _props: AppProps
 	) {}
 
-	public init() {
+	public async init() {
 		const { canvas } = this._props.event || {};
 		if (!canvas)
-			throw new Error("Renderer Service: Core App Canvas is not initialized.");
+			throw new Error(
+				"@quick-threejs/reactive: Core App Canvas is not accessible in the Renderer Service."
+			);
 
-		this.instance = new WebGLRenderer({
+		const rendererOptions = {
 			canvas,
-			context: canvas.getContext("webgl2", {
-				stencil: true,
-				powerPreference: "high-performance"
-			}) as WebGL2RenderingContext,
-			powerPreference: "high-performance",
+			powerPreference: "high-performance" as const,
+			stencil: true,
 			depth: true,
 			antialias: true
-		});
+		};
+
+		if (this._props.event?.renderer === RendererType.WEBGL) {
+			this.instance = new WebGLRenderer(rendererOptions);
+		} else {
+			this.instance = new WebGPURenderer({
+				...rendererOptions,
+				forceWebGL: true
+			});
+			await this.instance.init();
+		}
+
+		this._configureRenderer();
+	}
+
+	private _configureRenderer() {
+		if (!this.instance) return;
+
 		this.instance.autoClear = false;
 		this.instance.setPixelRatio(this._sizes.pixelRatio);
 		this.instance.setClearColor(0x000000, 0);
@@ -51,19 +73,16 @@ export class RendererService {
 	}
 
 	public handleAutoResize() {
-		if (!this.enabledAutoResize || !(this.instance instanceof WebGLRenderer))
-			return;
+		if (!this.enabledAutoResize || !this.instance) return;
 
 		const { width, height } = this._sizes.getViewPortSizes();
 
-		this.instance?.setSize(width, height);
+		this.instance.setPixelRatio(this._sizes.pixelRatio);
+		this.instance.setSize(width, height);
 	}
 
 	public render() {
-		if (
-			!(this._cameraService.instance instanceof Camera) ||
-			!(this.instance instanceof WebGLRenderer)
-		)
+		if (!(this._cameraService.instance instanceof Camera) || !this.instance)
 			return;
 
 		const width = this._sizes.fullScreen

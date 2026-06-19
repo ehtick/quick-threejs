@@ -76,24 +76,24 @@ export class AppModule
 		return this.world.getAfterRender$();
 	}
 
-	public init() {
+	public async init() {
 		this._service.init();
 		this.sizes.init();
 		this.camera.init();
 		this.world.init();
-		this.renderer.init();
+		await this.renderer.init();
 		this.timer.init();
 		this.loader.init();
-		this.debug.init();
+		await this.debug.init();
 	}
 
 	public dispose() {
-		this.sizes.dispose();
-		this.camera.dispose();
+		this.timer.dispose();
+		this.debug.dispose();
 		this.world.dispose();
 		this.renderer.dispose();
-		this.timer.dispose();
+		this.camera.dispose();
+		this.sizes.dispose();
 		this.loader.dispose();
-		this.debug.dispose();
 	}
 }

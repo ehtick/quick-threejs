@@ -15,7 +15,11 @@ export default defineConfig({
 			name: "QuickThreeReactive"
 		},
 		rollupOptions: {
-			external: ["three"],
+			external: [
+				"three",
+				"three/webgpu",
+				"three/examples/jsm/inspector/Inspector.js"
+			],
 			output: {
 				globals: {
 					three: "THREE"

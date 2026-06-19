@@ -1,4 +1,4 @@
-import { inject, Lifecycle, scoped } from "tsyringe";
+import { type DependencyContainer, inject, Lifecycle, scoped } from "tsyringe";
 import { copyProperties } from "@quick-threejs/utils";
 import {
 	createWorkerPool,
@@ -8,6 +8,8 @@ import {
 
 import {
 	type OffscreenCanvasStb,
+	APP_EXPOSED_THREAD_TOKEN,
+	CONTAINER_TOKEN,
 	KEYBOARD_EVENT_CODES,
 	RegisterPropsBlueprint
 } from "@/common";
@@ -24,7 +26,8 @@ export class RegisterService {
 
 	constructor(
 		@inject(RegisterPropsBlueprint)
-		private readonly _props: RegisterPropsBlueprint
+		private readonly _props: RegisterPropsBlueprint,
+		@inject(CONTAINER_TOKEN) public readonly container: DependencyContainer
 	) {
 		this.workerPool = createWorkerPool(undefined, !!this._props.debug?.enabled);
 	}
@@ -112,5 +115,34 @@ export class RegisterService {
 			...this.getScreenSizes(),
 			...copyProperties(e, ["ctrlKey", "metaKey", "shiftKey", "keyCode"])
 		};
+	}
+
+	public async disposeAppThread() {
+		try {
+			const { thread: workerApp } = this.workerThread || {};
+
+			if (workerApp?.dispose) return await workerApp.dispose();
+
+			if (!this._props.mainThread) return;
+
+			const mainThreadApp = this.container.resolve<ExposedAppModule>(
+				APP_EXPOSED_THREAD_TOKEN
+			);
+			await mainThreadApp?.dispose?.();
+		} catch {
+			// App thread was not initialized or already disposed.
+		}
+	}
+
+	public async disposeWorkerPool() {
+		await this.workerPool.terminateAll();
+	}
+
+	public disposeCanvas() {
+		if (this.canvas?.dataset["reactive"] === "true") {
+			document.body.removeChild(this.canvas);
+			this.canvas.remove();
+			this.canvas = undefined;
+		}
 	}
 }

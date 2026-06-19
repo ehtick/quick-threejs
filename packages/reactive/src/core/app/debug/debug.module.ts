@@ -2,7 +2,8 @@ import { Subscription } from "rxjs";
 import { PerspectiveCamera } from "three";
 import { inject, Lifecycle, scoped } from "tsyringe";
 
-import { type Module, type AppProps, APP_PROPS_TOKEN } from "@/common";
+import { type Module } from "@/common";
+import { TimerController } from "../timer/timer.controller";
 import { DebugService } from "./debug.service";
 import { DebugController } from "./debug.controller";
 
@@ -13,37 +14,37 @@ export class DebugModule implements Module {
 	constructor(
 		@inject(DebugService) public readonly _service: DebugService,
 		@inject(DebugController) public readonly _controller: DebugController,
-		@inject(APP_PROPS_TOKEN) private readonly _props: AppProps
+		@inject(TimerController) private readonly _timerController: TimerController
 	) {}
 
-	public init() {
-		const { debug } = this._props.event || {};
-
-		this._service.enabled = !!debug?.enabled;
-		if (!this._service.enabled) return;
-		if (debug?.withMiniCamera) this._service.initMiniCamera();
-		if (debug?.enableControls) {
-			this._service.initOrbitControl();
-			this._service.initMiniCameraOrbitControls();
-		}
-		if (typeof debug?.axesSizes === "number")
-			this._service.initAxesHelper(debug.axesSizes);
-		if (typeof debug?.gridSizes === "number")
-			this._service.initGridHelper(debug.gridSizes);
+	public async init() {
+		await this._service.init();
 
 		this._subscriptions.push(
-			this._controller.step$.subscribe(this._service.update.bind(this._service))
+			this._timerController.beforeStep$.subscribe(() =>
+				this._service.beginInspectorFrame()
+			),
+			this._controller.step$.subscribe(
+				this._service.update.bind(this._service)
+			),
+			this._timerController.step$.subscribe(() =>
+				this._service.finishInspectorFrame()
+			)
 		);
 	}
 
 	public enabled(value?: boolean) {
-		if (value) this._service.enabled = value;
+		if (typeof value === "boolean") this._service.enabled = value;
 		return this._service.enabled;
 	}
 
 	public miniCamera(value?: PerspectiveCamera) {
 		if (value) this._service.miniCamera = value;
 		return this._service.miniCamera;
+	}
+
+	public inspector() {
+		return this._service.inspector;
 	}
 
 	public getAxesHelper() {

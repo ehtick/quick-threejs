@@ -18,4 +18,9 @@ export class WorldController {
 			this._beforeRender$$.next({});
 		this._worldService.scene.onAfterRender = () => this._afterRender$$.next({});
 	}
+
+	public dispose() {
+		this._beforeRender$$.complete();
+		this._afterRender$$.complete();
+	}
 }

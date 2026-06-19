@@ -15,11 +15,7 @@ export class LoaderModule implements Module {
 	) {}
 
 	public init() {
-		this._subscriptions.push(
-			this._controller.load$.subscribe(
-				this._service.handleLoad.bind(this._service)
-			)
-		);
+		this._subscriptions.push();
 	}
 
 	public getLoadedResources() {
