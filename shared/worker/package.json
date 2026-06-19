@@ -1,6 +1,17 @@
 {
 	"name": "@quick-threejs/worker",
-	"version": "0.1.21",
+	"version": "0.1.20",
+	"description": "Worker thread pool utilities for quick-threejs",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/Neosoulink/quick-threejs.git",
+		"directory": "shared/worker"
+	},
+	"license": "ISC",
+	"publishConfig": {
+		"access": "public",
+		"registry": "https://registry.npmjs.org/"
+	},
 	"scripts": {
 		"prepare": "pnpm run build",
 		"lint": "eslint && tsc --noEmit",

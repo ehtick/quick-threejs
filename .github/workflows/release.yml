@@ -20,12 +20,15 @@ jobs:
     steps:
       - name: Checkout Repository Workflow
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.workflow_run.head_sha }}
 
       - name: Cache turbo build setup
         uses: actions/cache@v4
         with:
           path: .turbo
-          key: ${{ runner.os }}-turbo-${{ github.sha }}
+          key: ${{ runner.os }}-turbo-${{ github.event.workflow_run.head_sha }}
           restore-keys: |
             ${{ runner.os }}-turbo-
 
@@ -45,6 +48,14 @@ jobs:
         shell: bash
         run: pnpm install --frozen-lockfile
 
+      - name: Verify npm authentication
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm whoami
+
+      - name: Build packages
+        run: pnpm build
+
       - name: Create Release Pull Request & Release
         uses: changesets/action@v1
         with:
@@ -54,5 +65,4 @@ jobs:
           publish: pnpm run release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
