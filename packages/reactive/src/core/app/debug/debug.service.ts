@@ -1,7 +1,7 @@
 import { inject, Lifecycle, scoped } from "tsyringe";
 import { AxesHelper, Camera, GridHelper, PerspectiveCamera } from "three";
 import { OrbitControls } from "three/examples/jsm/Addons";
-import { Inspector } from "three/examples/jsm/inspector/Inspector.js";
+import type { Inspector } from "three/examples/jsm/inspector/Inspector.js";
 import { WebGPURenderer } from "three/webgpu";
 
 import { APP_PROPS_TOKEN, type AppProps, RendererType } from "@/common";
@@ -124,7 +124,7 @@ export class DebugService {
 		this._worldService.scene.add(this.gridHelper);
 	}
 
-	public initInspector() {
+	public async initInspector() {
 		const { debug, mainThread } = this._props.event || {};
 
 		if (debug?.enabled && debug.enableInspector && !mainThread) {
@@ -139,6 +139,9 @@ export class DebugService {
 		if (!this._inspectorEnabled || !(renderer instanceof WebGPURenderer))
 			return;
 
+		const { Inspector } = await import(
+			"three/examples/jsm/inspector/Inspector.js"
+		);
 		const inspector = new Inspector();
 
 		inspector.settings._getExtensions = async () => [];
@@ -159,7 +162,11 @@ export class DebugService {
 
 	public beginInspectorFrame() {
 		const renderer = this._rendererService.instance;
-		if (!this._inspectorEnabled || !(renderer instanceof WebGPURenderer))
+		if (
+			!this._inspectorEnabled ||
+			!(renderer instanceof WebGPURenderer) ||
+			!renderer.inspector
+		)
 			return;
 
 		if (renderer.info.autoReset) renderer.info.reset();
@@ -170,13 +177,17 @@ export class DebugService {
 
 	public finishInspectorFrame() {
 		const renderer = this._rendererService.instance;
-		if (!this._inspectorEnabled || !(renderer instanceof WebGPURenderer))
+		if (
+			!this._inspectorEnabled ||
+			!(renderer instanceof WebGPURenderer) ||
+			!renderer.inspector
+		)
 			return;
 
 		renderer.inspector.finish();
 	}
 
-	public init() {
+	public async init() {
 		const { debug } = this._props.event || {};
 
 		this.enabled = !!debug?.enabled;
@@ -190,7 +201,7 @@ export class DebugService {
 			this.initAxesHelper(debug.axesSizes);
 		if (typeof debug?.gridSizes === "number")
 			this.initGridHelper(debug.gridSizes);
-		if (debug?.enableInspector) this.initInspector();
+		if (debug?.enableInspector) await this.initInspector();
 	}
 
 	public disposeMiniCamera() {

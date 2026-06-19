@@ -84,7 +84,7 @@ export class AppModule
 		await this.renderer.init();
 		this.timer.init();
 		this.loader.init();
-		this.debug.init();
+		await this.debug.init();
 	}
 
 	public dispose() {

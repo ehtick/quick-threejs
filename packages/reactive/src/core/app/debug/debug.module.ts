@@ -4,7 +4,6 @@ import { inject, Lifecycle, scoped } from "tsyringe";
 
 import { type Module } from "@/common";
 import { TimerController } from "../timer/timer.controller";
-import { WorldController } from "../world/world.controller";
 import { DebugService } from "./debug.service";
 import { DebugController } from "./debug.controller";
 
@@ -15,21 +14,22 @@ export class DebugModule implements Module {
 	constructor(
 		@inject(DebugService) public readonly _service: DebugService,
 		@inject(DebugController) public readonly _controller: DebugController,
-		@inject(TimerController) private readonly _timerController: TimerController,
-		@inject(WorldController) private readonly _worldController: WorldController
+		@inject(TimerController) private readonly _timerController: TimerController
 	) {}
 
-	public init() {
-		this._service.init();
+	public async init() {
+		await this._service.init();
 
 		this._subscriptions.push(
 			this._timerController.beforeStep$.subscribe(() =>
 				this._service.beginInspectorFrame()
 			),
-			this._worldController.afterRender$.subscribe(() =>
-				this._service.finishInspectorFrame()
+			this._controller.step$.subscribe(
+				this._service.update.bind(this._service)
 			),
-			this._controller.step$.subscribe(this._service.update.bind(this._service))
+			this._timerController.step$.subscribe(() =>
+				this._service.finishInspectorFrame()
+			)
 		);
 	}
 
