@@ -53,8 +53,8 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: npm whoami
 
-      - name: Build packages
-        run: pnpm build
+      - name: Build publishable packages
+        run: pnpm build:packages
 
       - name: Create Release Pull Request & Release
         uses: changesets/action@v1

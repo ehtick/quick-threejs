@@ -15,6 +15,7 @@
 	"scripts": {
 		"dev": "turbo dev",
 		"build": "turbo build",
+		"build:packages": "turbo build --filter=@quick-threejs/*",
 		"test": "turbo test",
 		"test:e2e": "turbo test:e2e",
 		"lint": "eslint . && turbo lint",
