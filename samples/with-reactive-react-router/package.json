@@ -28,7 +28,7 @@
 		"@types/react": "^19.1.12",
 		"@types/react-dom": "^19.2.3",
 		"@types/three": "^0.184.1",
-		"postcss": "^8.4.49",
+		"postcss": "^8.5.15",
 		"tailwindcss": "^4.2.1",
 		"vite-tsconfig-paths": "^6.1.1"
 	}
