@@ -18,6 +18,10 @@
 	"types": "./dist/index.d.ts",
 	"author": "Neosoulink",
 	"license": "ISC",
+	"publishConfig": {
+		"access": "public",
+		"registry": "https://registry.npmjs.org/"
+	},
 	"bugs": {
 		"url": "https://github.com/Neosoulink/quick-threejs/issues"
 	},
