@@ -1,4 +1,4 @@
-import { register } from "@quick-threejs/reactive";
+import { register, RendererType } from "@quick-threejs/reactive";
 import Stats from "stats.js";
 import { Audio, AudioListener } from "three";
 
@@ -20,6 +20,8 @@ if (isDev) console.log("🚧 worker location:", location);
 const registerApp = () =>
 	register({
 		location,
+		mainThread: true,
+		renderer: RendererType.WEBGPU,
 		loaderDataSources: [
 			{
 				name: "pawn",
@@ -45,6 +47,7 @@ const registerApp = () =>
 		debug: {
 			enabled: true,
 			enableControls: true,
+			enableInspector: true,
 			axesSizes: 5,
 			gridSizes: 10
 		},

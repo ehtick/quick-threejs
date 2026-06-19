@@ -10,6 +10,7 @@ import {
 	CONTAINER_TOKEN,
 	RegisterPropsBlueprint,
 	DefaultCameraType,
+	RendererType,
 	ContainerizedApp
 } from "@/common";
 import { RegisterModule } from "./register.module";
@@ -42,6 +43,11 @@ export const register = (
 	)
 		? DefaultCameraType.PERSPECTIVE
 		: props.defaultCamera;
+	props.renderer = Object.values(RendererType).includes(
+		props.renderer as RendererType
+	)
+		? props.renderer
+		: RendererType.WEBGPU;
 	props.fullScreen =
 		isUndefined(props.fullScreen) || !isBoolean(props.fullScreen)
 			? true
@@ -75,6 +81,11 @@ export const register = (
 			isUndefined(props.debug.axesSizes) || !isNumber(props.debug.axesSizes)
 				? undefined
 				: props.debug.axesSizes;
+		props.debug.enableInspector =
+			isUndefined(props.debug.enableInspector) ||
+			!isBoolean(props.debug.enableInspector)
+				? false
+				: props.debug.enableInspector;
 	}
 
 	container.register(CONTAINER_TOKEN, { useValue: container });

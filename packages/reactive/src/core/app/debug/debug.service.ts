@@ -1,7 +1,10 @@
 import { inject, Lifecycle, scoped } from "tsyringe";
 import { AxesHelper, Camera, GridHelper, PerspectiveCamera } from "three";
 import { OrbitControls } from "three/examples/jsm/Addons";
+import { Inspector } from "three/examples/jsm/inspector/Inspector.js";
+import { WebGPURenderer } from "three/webgpu";
 
+import { APP_PROPS_TOKEN, type AppProps, RendererType } from "@/common";
 import { CameraService } from "../camera/camera.service";
 import { AppService } from "../app.service";
 import { WorldService } from "../world/world.service";
@@ -16,14 +19,27 @@ export class DebugService {
 	public miniCameraControls?: OrbitControls;
 	public axesHelper?: AxesHelper;
 	public gridHelper?: GridHelper;
+	public inspector?: Inspector;
 
 	constructor(
 		@inject(AppService) private readonly _appService: AppService,
 		@inject(SizesService) private readonly _sizes: SizesService,
 		@inject(RendererService) private readonly _rendererService: RendererService,
 		@inject(CameraService) private readonly _cameraService: CameraService,
-		@inject(WorldService) private readonly _worldService: WorldService
+		@inject(WorldService) private readonly _worldService: WorldService,
+		@inject(APP_PROPS_TOKEN) private readonly _props: AppProps
 	) {}
+
+	private get _inspectorEnabled() {
+		const { debug, mainThread, renderer } = this._props.event || {};
+
+		return !!(
+			this.enabled &&
+			debug?.enableInspector &&
+			renderer !== RendererType.WEBGL &&
+			mainThread
+		);
+	}
 
 	private _renderMiniCamera() {
 		if (!this.enabled || !this.miniCamera) return;
@@ -108,6 +124,75 @@ export class DebugService {
 		this._worldService.scene.add(this.gridHelper);
 	}
 
+	public initInspector() {
+		const { debug, mainThread } = this._props.event || {};
+
+		if (debug?.enabled && debug.enableInspector && !mainThread) {
+			console.warn(
+				"@quick-threejs/reactive: debug.enableInspector requires mainThread: true. " +
+					"The Inspector UI needs DOM access and cannot run in an OffscreenCanvas worker."
+			);
+			return;
+		}
+
+		const renderer = this._rendererService.instance;
+		if (!this._inspectorEnabled || !(renderer instanceof WebGPURenderer))
+			return;
+
+		const inspector = new Inspector();
+
+		inspector.settings._getExtensions = async () => [];
+
+		renderer.inspector = inspector as unknown as WebGPURenderer["inspector"];
+		this.inspector = inspector;
+
+		inspector.init();
+
+		if (
+			inspector.domElement.parentElement === null &&
+			typeof document !== "undefined"
+		) {
+			const canvasParent = renderer.domElement.parentElement;
+			(canvasParent ?? document.body).appendChild(inspector.domElement);
+		}
+	}
+
+	public beginInspectorFrame() {
+		const renderer = this._rendererService.instance;
+		if (!this._inspectorEnabled || !(renderer instanceof WebGPURenderer))
+			return;
+
+		if (renderer.info.autoReset) renderer.info.reset();
+		// @ts-expect-error WebGPURenderer internal node frame API
+		renderer._nodes.nodeFrame.update();
+		renderer.inspector.begin();
+	}
+
+	public finishInspectorFrame() {
+		const renderer = this._rendererService.instance;
+		if (!this._inspectorEnabled || !(renderer instanceof WebGPURenderer))
+			return;
+
+		renderer.inspector.finish();
+	}
+
+	public init() {
+		const { debug } = this._props.event || {};
+
+		this.enabled = !!debug?.enabled;
+		if (!this.enabled) return;
+		if (debug?.withMiniCamera) this.initMiniCamera();
+		if (debug?.enableControls) {
+			this.initOrbitControl();
+			this.initMiniCameraOrbitControls();
+		}
+		if (typeof debug?.axesSizes === "number")
+			this.initAxesHelper(debug.axesSizes);
+		if (typeof debug?.gridSizes === "number")
+			this.initGridHelper(debug.gridSizes);
+		if (debug?.enableInspector) this.initInspector();
+	}
+
 	public disposeMiniCamera() {
 		if (!(this.miniCamera instanceof Camera)) return;
 
@@ -124,6 +209,7 @@ export class DebugService {
 
 	public dispose() {
 		this.disposeMiniCamera();
+		this.inspector = undefined;
 
 		this.cameraControls?.dispose();
 		this.cameraControls = undefined;

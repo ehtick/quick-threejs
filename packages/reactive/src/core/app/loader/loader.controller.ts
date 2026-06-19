@@ -1,5 +1,5 @@
-import { copyProperties, deserializeObject3D } from "@quick-threejs/utils";
-import { filter, fromEvent, map, share } from "rxjs";
+import { deserializeObject3D } from "@quick-threejs/utils";
+import { filter, fromEvent, map, share, shareReplay, tap } from "rxjs";
 import { type GLTF, type GLTFParser, Font } from "three/examples/jsm/Addons";
 import { inject, Lifecycle, scoped } from "tsyringe";
 
@@ -64,6 +64,7 @@ export class LoaderController {
 
 			return payload as LoadedResourcePayload;
 		}),
+		tap((payload) => this._service.handleLoad(payload)),
 		share()
 	);
 
@@ -71,14 +72,12 @@ export class LoaderController {
 		filter(
 			(payload) => !!payload && payload.toLoadCount === payload.loadedCount
 		),
-		map(() =>
-			copyProperties(this._service, [
-				"loadedCount",
-				"loadedResources",
-				"toLoadCount"
-			])
-		),
-		share()
+		map((payload) => ({
+			loadedCount: payload.loadedCount,
+			toLoadCount: payload.toLoadCount,
+			loadedResources: this._service.loadedResources
+		})),
+		shareReplay({ bufferSize: 1, refCount: true })
 	);
 
 	constructor(

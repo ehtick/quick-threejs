@@ -2,7 +2,9 @@ import { Subscription } from "rxjs";
 import { PerspectiveCamera } from "three";
 import { inject, Lifecycle, scoped } from "tsyringe";
 
-import { type Module, type AppProps, APP_PROPS_TOKEN } from "@/common";
+import { type Module } from "@/common";
+import { TimerController } from "../timer/timer.controller";
+import { WorldController } from "../world/world.controller";
 import { DebugService } from "./debug.service";
 import { DebugController } from "./debug.controller";
 
@@ -13,25 +15,20 @@ export class DebugModule implements Module {
 	constructor(
 		@inject(DebugService) public readonly _service: DebugService,
 		@inject(DebugController) public readonly _controller: DebugController,
-		@inject(APP_PROPS_TOKEN) private readonly _props: AppProps
+		@inject(TimerController) private readonly _timerController: TimerController,
+		@inject(WorldController) private readonly _worldController: WorldController
 	) {}
 
 	public init() {
-		const { debug } = this._props.event || {};
-
-		this._service.enabled = !!debug?.enabled;
-		if (!this._service.enabled) return;
-		if (debug?.withMiniCamera) this._service.initMiniCamera();
-		if (debug?.enableControls) {
-			this._service.initOrbitControl();
-			this._service.initMiniCameraOrbitControls();
-		}
-		if (typeof debug?.axesSizes === "number")
-			this._service.initAxesHelper(debug.axesSizes);
-		if (typeof debug?.gridSizes === "number")
-			this._service.initGridHelper(debug.gridSizes);
+		this._service.init();
 
 		this._subscriptions.push(
+			this._timerController.beforeStep$.subscribe(() =>
+				this._service.beginInspectorFrame()
+			),
+			this._worldController.afterRender$.subscribe(() =>
+				this._service.finishInspectorFrame()
+			),
 			this._controller.step$.subscribe(this._service.update.bind(this._service))
 		);
 	}
@@ -44,6 +41,10 @@ export class DebugModule implements Module {
 	public miniCamera(value?: PerspectiveCamera) {
 		if (value) this._service.miniCamera = value;
 		return this._service.miniCamera;
+	}
+
+	public inspector() {
+		return this._service.inspector;
 	}
 
 	public getAxesHelper() {
